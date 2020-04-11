@@ -21,7 +21,7 @@ program mwrapper
   call MPI_Comm_rank(global_comm, global_rank, ierr)
   call MPI_Comm_size(global_comm, global_size, ierr)
 
-! processing inputs
+! processing inputs, stop unpon error
 #ifdef SERIAL 
   call processing_input(global_comm, global_size, global_rank, njobs, appname, mydir, *500)
 #else
@@ -34,30 +34,30 @@ program mwrapper
   call MPI_Comm_rank(aMPI_COMM_WORLD, rank, ierr)
   call MPI_Comm_size(aMPI_COMM_WORLD, size, ierr)
 
-  call print_msg(global_rank, 'njobs, global_size, ncores', 400)
+  call print_msg(global_rank, 'njobs, global_size, global_size / njobs', 400)
 #ifdef SERIAL  
   call print_msg(global_rank, 'application is ' // trim(appname), 499)
 #endif
 
   call print_msg(rank, 'jobs starting', 401)
 
-! each job cd to its run directory 
+! cd to the run directory 
   ierr = chdir(mydir)
 
-! redirect the standard output (unit=6) to a file for each job 
+! redirect the standard output (unit=6) and error (unit-0) to files for each job 
   write(stdoutfile, "('stdoutfile.', i3.3)") color
   write(stderrfile, "('stderrfile.', i3.3)") color
   if (rank == 0) open(unit = 6,file = stdoutfile, action = 'write')
   if (rank == 0) open(unit = 0,file = stderrfile, action = 'write')
   
-! run njobs jobs simultantously, one by each group
+! run njobs jobs simultantously, one per group
   tstart = MPI_Wtime()
 #ifdef SERIAL 
   call execute_command_line(appname, wait = .true., exitstat = ierror_app)
 #else
 !  call MPI_Comm_set_errhandler(aMPI_COMM_WORLD, MPI_ERRORS_RETURN, ierr) 
-!  call vamp()  !can be any mpi application (need to convert to a subroutine first)  
-  call jacobi_mpiomp()
+  call vamp()  !can be any mpi application (need to convert to a subroutine first)  
+!  call jacobi_mpiomp() !this is an example for jacobi code
 #endif
   tend = MPI_Wtime()
 
@@ -131,7 +131,7 @@ end program
 !     defaults  
       joblistfile = 'joblist.in'
 #ifdef SERIAL
-      appname = 'app.x'
+      appname = 'myapp.x'
 #endif
 !     get optional command line arguments
       nargs = command_argument_count()
@@ -182,6 +182,14 @@ end program
       endif
 
       ncores = global_size / njobs
+#ifdef SERIAL
+      if (ncores /= 1) then 
+           print *, 'more than one tasks are assigned to a serial execution, stop' 
+           print *, 'ncores (tasks per job) =', ncores  
+           ierror = 1
+           goto 200
+      endif
+#endif
       if ( ncores * njobs /= global_size ) then
            print *, 'the total number of processors is not divisble by the number of jobs, stop ' 
            print *, 'global_size, njobs = ', global_size, njobs  
