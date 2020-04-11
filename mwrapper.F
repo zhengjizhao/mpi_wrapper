@@ -21,14 +21,14 @@ program mwrapper
   call MPI_Comm_rank(global_comm, global_rank, ierr)
   call MPI_Comm_size(global_comm, global_size, ierr)
 
-! processing inputs, stop unpon error
+! process inputs, stop unpon error
 #ifdef SERIAL 
-  call processing_input(global_comm, global_size, global_rank, njobs, appname, mydir, *500)
+  call process_input(global_comm, global_size, global_rank, njobs, appname, mydir, *500)
 #else
-  call processing_input(global_comm, global_size, global_rank, njobs, mydir, *500)
+  call process_input(global_comm, global_size, global_rank, njobs, mydir, *500)
 #endif
 
-! splitting the processors into "njobs" number of groups, "color" is the gorup index
+! split processors into "njobs" number of groups, "color" is the gorup index
   call groups(global_rank, global_size, njobs, color, key, ipartition)
   call MPI_Comm_split(global_comm, color, key, aMPI_COMM_WORLD,ierr)
   call MPI_Comm_rank(aMPI_COMM_WORLD, rank, ierr)
@@ -41,7 +41,7 @@ program mwrapper
 
   call print_msg(rank, 'jobs starting', 401)
 
-! cd to the run directory 
+! cd to run directory 
   ierr = chdir(mydir)
 
 ! redirect the standard output (unit=6) and error (unit-0) to files for each job 
@@ -50,7 +50,7 @@ program mwrapper
   if (rank == 0) open(unit = 6,file = stdoutfile, action = 'write')
   if (rank == 0) open(unit = 0,file = stderrfile, action = 'write')
   
-! run njobs jobs simultantously, one per group
+! run njobs number of jobs simultantously, one per group
   tstart = MPI_Wtime()
 #ifdef SERIAL 
   call execute_command_line(appname, wait = .true., exitstat = ierror_app)
@@ -70,7 +70,7 @@ program mwrapper
 
 !  call MPI_Barrier(global_comm,ierr)
 
-! Finish up
+! finish up
 500  call MPI_Finalize(ierr)
 
   contains 
@@ -107,9 +107,9 @@ program mwrapper
 end program
 
 #ifdef SERIAL 
-  subroutine processing_input(global_comm, global_size, global_rank, njobs, appname, mydir, *)
+  subroutine process_input(global_comm, global_size, global_rank, njobs, appname, mydir, *)
 #else
-  subroutine processing_input(global_comm, global_size, global_rank, njobs, mydir, *)
+  subroutine process_input(global_comm, global_size, global_rank, njobs, mydir, *)
 #endif
   include 'mpif.h'
   integer, intent(in) :: global_comm, global_size, global_rank
