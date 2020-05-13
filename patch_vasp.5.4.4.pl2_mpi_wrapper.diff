@@ -231,8 +231,8 @@ diff -Naur ../../vasp.5.4.4.pl2/src/mwrapper.F ./src/mwrapper.F
 +  ierr = chdir(mydir)
 +
 +! redirect the standard output (unit=6) to a file for each job 
-+  write(stdoutfile, "('stdoutfile.', i3.3)") color
-+  write(stderrfile, "('stderrfile.', i3.3)") color
++  write(stdoutfile, "('stdoutfile.', i4.4)") color
++  write(stderrfile, "('stderrfile.', i4.4)") color
 +  if (rank == 0) open(unit = 6,file = stdoutfile, action = 'write')
 +  if (rank == 0) open(unit = 0,file = stderrfile, action = 'write')
 +  

@@ -45,8 +45,8 @@ program mwrapper
   ierr = chdir(mydir)
 
 ! redirect the standard output (unit=6) and error (unit-0) to files for each job 
-  write(stdoutfile, "('stdoutfile.', i3.3)") color
-  write(stderrfile, "('stderrfile.', i3.3)") color
+  write(stdoutfile, "('stdoutfile.', i4.4)") color
+  write(stderrfile, "('stderrfile.', i4.4)") color
   if (rank == 0) open(unit = 6,file = stdoutfile, action = 'write')
   if (rank == 0) open(unit = 0,file = stderrfile, action = 'write')
   
