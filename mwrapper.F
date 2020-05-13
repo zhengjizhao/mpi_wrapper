@@ -84,7 +84,7 @@ program mwrapper
 
 400   format('running ', I4, ' jobs with ', I10, ' processors, ', I4, ' processors each.')
 401   format('the ', I4, '-th job with ', I4, ' processors running in directory, ', A, ' ...')  
-402   format('the ', I4, '-th job running in ', A,  ' is ', A, '. elapsed time (sec): ', F8.2)  
+402   format('the ', I4, '-th job running in ', A,  ' is ', A, '. elapsed time (sec): ', F10.2)  
 
   if (myrank == 0) then
       select case (label)
