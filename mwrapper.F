@@ -164,7 +164,7 @@ end program
       allocate(rundirs(0:njobs-1))
       nlines = 0
       do i = 0, njobs - 1
-          read(10, *, END = 100) rundirs(i)
+          read(10, "(a)", END = 100) rundirs(i)
           nlines = nlines + 1
       enddo
 
