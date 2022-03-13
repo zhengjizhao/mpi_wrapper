@@ -1,6 +1,6 @@
-diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/main.F src/main.F
---- /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/main.F	2019-11-04 05:45:34.000000000 -0800
-+++ src/main.F	2020-04-03 17:25:14.993489794 -0700
+diff -Naur ../../vasp.5.4.4.pl2/src/main.F ./src/main.F
+--- ../../vasp.5.4.4.pl2/src/main.F	2019-11-04 05:45:34.000000000 -0800
++++ ./src/main.F	2020-04-27 19:51:14.884410514 -0700
 @@ -71,9 +71,11 @@
  ! (except for native 64-bit-REAL machines like CRAY style machines)
  !**********************************************************************
@@ -25,41 +25,46 @@ diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/main.F src/main.F
 -  END PROGRAM
 +     !ZZ END PROGRAM
 +     END subroutine 
-diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/makefile src/makefile
---- /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/makefile	2019-11-04 05:45:34.000000000 -0800
-+++ src/makefile	2020-04-10 13:00:33.154182000 -0700
-@@ -134,15 +134,25 @@
+diff -Naur ../../vasp.5.4.4.pl2/src/makefile ./src/makefile
+--- ../../vasp.5.4.4.pl2/src/makefile	2019-11-04 05:45:34.000000000 -0800
++++ ./src/makefile	2020-04-27 20:31:57.069739000 -0700
+@@ -127,6 +127,17 @@
+ endif
  
- -include .depend
  
 +### Begin MPI wrapper addition ###
 +MPIW_PREFIX = m
 +EXE_RENAMED = $(MPIW_PREFIX)$(EXE)
++VASPEXE=$(MPIW_PREFIX)vasp
++
 +FPP += -DINTEL 
 +MPIW_OBJS = mpi_wrapper.o mwrapper.o
-+
-+$(MPIW_OBJS): %.o: %$(SUFFIX)
-+	$(FC) $(FREE) $(FFLAGS) -c $*$(SUFFIX)
++OBJS += $(MPIW_OBJS)
 +### End MPI wrapper addition ###
 +
- # export
- 
++
+ OBJCTS=$(filter %.o, $(OBJS) $(FFT3D))
+ #OBJCTS_f90=$(filter-out getshmem.o, $(OBJCTS))
+ F90SRC=$(OBJCTS:.o=$(SUFFIX))
+@@ -139,11 +150,11 @@
  .PHONY: all cleanall clean sources dependencies depend libs $(LIB)
  
  all: libs sources
 -	rm -f vasp ; $(MAKE) vasp ; cp vasp $(BINDIR)/$(EXE)
-+	rm -f vasp ; $(MAKE) vasp ; cp vasp $(BINDIR)/$(EXE_RENAMED) ; mv vasp $(MPIW_PREFIX)vasp 
- 	
+-	
 -vasp: $(OBJS) $(FFT3D) $(INC) main.o
 -	$(FCL) -o vasp $(OBJS) main.o $(FFT3D) $(LLIB) $(LINK)
-+vasp: $(MPIW_OBJS) $(OBJS) $(FFT3D) $(INC) main.o
-+	$(FCL) -o vasp $(OBJS) main.o $(MPIW_OBJS) $(FFT3D) $(LLIB) $(LINK)
++	rm -f $(VASPEXE) ; $(MAKE) $(VASPEXE) ; cp $(VASPEXE) $(BINDIR)/$(EXE_RENAMED)
  
++$(VASPEXE): $(OBJS) $(FFT3D) $(INC) main.o
++	$(FCL) -o $@ $(OBJS) main.o $(FFT3D) $(LLIB) $(LINK)
++	
  sources:
  	rsync -u $(SRCDIR)/*.F $(SRCDIR)/*.inc .
-diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mpi.F src/mpi.F
---- /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mpi.F	2019-11-04 05:45:34.000000000 -0800
-+++ src/mpi.F	2020-04-10 12:10:41.333350752 -0700
+ #	-rsync -u $(SRCDIR)/*.f .
+diff -Naur ../../vasp.5.4.4.pl2/src/mpi.F ./src/mpi.F
+--- ../../vasp.5.4.4.pl2/src/mpi.F	2019-11-04 05:45:34.000000000 -0800
++++ ./src/mpi.F	2020-04-27 19:51:14.886344760 -0700
 @@ -124,23 +124,27 @@
  !----------------------------------------------------------------------
  !
@@ -167,17 +172,17 @@ diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mpi.F src/mpi.F
        STOP
  
        RETURN
-diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mpi_wrapper.F src/mpi_wrapper.F
---- /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mpi_wrapper.F	1969-12-31 16:00:00.000000000 -0800
-+++ src/mpi_wrapper.F	2020-04-09 16:05:13.182781000 -0700
+diff -Naur ../../vasp.5.4.4.pl2/src/mpi_wrapper.F ./src/mpi_wrapper.F
+--- ../../vasp.5.4.4.pl2/src/mpi_wrapper.F	1969-12-31 16:00:00.000000000 -0800
++++ ./src/mpi_wrapper.F	2020-04-27 19:51:14.886809000 -0700
 @@ -0,0 +1,4 @@
 +      module mpi_wrapper
 +      integer :: aMPI_COMM_WORLD
 +      integer :: ierror_app = 0
 +      end Module mpi_wrapper
-diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mwrapper.F src/mwrapper.F
---- /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mwrapper.F	1969-12-31 16:00:00.000000000 -0800
-+++ src/mwrapper.F	2020-04-10 12:21:00.301740089 -0700
+diff -Naur ../../vasp.5.4.4.pl2/src/mwrapper.F ./src/mwrapper.F
+--- ../../vasp.5.4.4.pl2/src/mwrapper.F	1969-12-31 16:00:00.000000000 -0800
++++ ./src/mwrapper.F	2020-04-27 19:51:14.887314613 -0700
 @@ -0,0 +1,270 @@
 +!this program enables multiple instances of an application to run simultaneously.  
 +program mwrapper 
@@ -226,8 +231,8 @@ diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mwrapper.F src/mwrapper
 +  ierr = chdir(mydir)
 +
 +! redirect the standard output (unit=6) to a file for each job 
-+  write(stdoutfile, "('stdoutfile.', i3.3)") color
-+  write(stderrfile, "('stderrfile.', i3.3)") color
++  write(stdoutfile, "('stdoutfile.', i4.4)") color
++  write(stderrfile, "('stderrfile.', i4.4)") color
 +  if (rank == 0) open(unit = 6,file = stdoutfile, action = 'write')
 +  if (rank == 0) open(unit = 0,file = stderrfile, action = 'write')
 +  
@@ -265,7 +270,7 @@ diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mwrapper.F src/mwrapper
 +
 +400   format('running ', I4, ' jobs with ', I10, ' processors, ', I4, ' processors each.')
 +401   format('the ', I4, '-th job with ', I4, ' processors running in directory, ', A, ' ...')  
-+402   format('the ', I4, '-th job running in ', A,  ' is ', A, '. elapsed time (sec): ', F8.2)  
++402   format('the ', I4, '-th job running in ', A,  ' is ', A, '. elapsed time (sec): ', F10.2)  
 +
 +  if (myrank == 0) then
 +      select case (label)
@@ -345,7 +350,7 @@ diff -Naur /global/homes/z/zz217/vasp/vasp.5.4.4.pl2/src/mwrapper.F src/mwrapper
 +      allocate(rundirs(0:njobs-1))
 +      nlines = 0
 +      do i = 0, njobs - 1
-+          read(10, *, END = 100) rundirs(i)
++          read(10, '(A)', END = 100) rundirs(i)
 +          nlines = nlines + 1
 +      enddo
 +

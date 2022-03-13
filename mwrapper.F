@@ -45,8 +45,8 @@ program mwrapper
   ierr = chdir(mydir)
 
 ! redirect the standard output (unit=6) and error (unit-0) to files for each job 
-  write(stdoutfile, "('stdoutfile.', i3.3)") color
-  write(stderrfile, "('stderrfile.', i3.3)") color
+  write(stdoutfile, "('stdoutfile.', i4.4)") color
+  write(stderrfile, "('stderrfile.', i4.4)") color
   if (rank == 0) open(unit = 6,file = stdoutfile, action = 'write')
   if (rank == 0) open(unit = 0,file = stderrfile, action = 'write')
   
@@ -84,7 +84,7 @@ program mwrapper
 
 400   format('running ', I4, ' jobs with ', I10, ' processors, ', I4, ' processors each.')
 401   format('the ', I4, '-th job with ', I4, ' processors running in directory, ', A, ' ...')  
-402   format('the ', I4, '-th job running in ', A,  ' is ', A, '. elapsed time (sec): ', F8.2)  
+402   format('the ', I4, '-th job running in ', A,  ' is ', A, '. elapsed time (sec): ', F10.2)  
 
   if (myrank == 0) then
       select case (label)
@@ -164,7 +164,7 @@ end program
       allocate(rundirs(0:njobs-1))
       nlines = 0
       do i = 0, njobs - 1
-          read(10, "(a)", END = 100) rundirs(i)
+          read(10, '(A)', END = 100) rundirs(i)
           nlines = nlines + 1
       enddo
 
